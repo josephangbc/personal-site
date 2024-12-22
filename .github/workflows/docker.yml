@@ -1,0 +1,47 @@
+name: Build and Push Docker Image with buildx and Hugo Version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Install dev dependencies
+        run: |
+          sudo apt-get install -y jq
+          sudo snap install yq
+
+      - name: Read version and Hugo version from hugoblox.yaml
+        id: version
+        run: |
+          VERSION=$(yq e '.version' hugoblox.yaml)
+          HUGO_VERSION=$(yq e '.build.hugo_version' hugoblox.yaml)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "HUGO_VERSION=$HUGO_VERSION" >> $GITHUB_ENV
+      
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build Docker image with buildx
+        run: |
+          # Build Docker image with Hugo version passed as a build argument
+          docker buildx build --push --build-arg HUGO_VERSION=${{ env.HUGO_VERSION }} -t ghcr.io/${{ github.repository }}:latest -t ghcr.io/${{ github.repository }}:${{ env.VERSION }} .
+

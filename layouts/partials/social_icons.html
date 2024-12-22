@@ -1,0 +1,35 @@
+<style>
+.social-icons a {
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+
+
+@keyframes shake {
+    0% { transform: scale(1.2) rotate(0deg); }
+    10% { transform: scale(1.2) rotate(-10deg); }
+    20% { transform: scale(1.2) rotate(10deg); }
+    30% { transform: scale(1.2) rotate(-8deg); }
+    40% { transform: scale(1.2) rotate(8deg); }
+    50% { transform: scale(1.2) rotate(-5deg); }
+    60% { transform: scale(1.2) rotate(5deg); }
+    70% { transform: scale(1.2) rotate(-3deg); }
+    80% { transform: scale(1.2) rotate(3deg); }
+    90% { transform: scale(1.2) rotate(0deg); }
+    100% { transform: scale(1.2) rotate(0deg); }
+}
+
+.social-icons a:hover {
+    animation: shake 1s ease;
+    transform: scale(1.2);
+}
+</style>
+    
+<div class="social-icons" {{ with .align}}align="{{.}}" {{- end }}>
+    {{- range site.Params.socialIcons }}
+    <a href="{{ trim .url " " | safeURL }}" target="_blank" rel="noopener noreferrer me"
+        title="{{ (.title | default .name) | title }}">
+        {{ partial "svg.html" . }}
+    </a>
+    {{- end }}
+</div>
